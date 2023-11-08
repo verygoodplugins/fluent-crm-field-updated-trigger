@@ -2,11 +2,16 @@
 
 This is a [FluentCRM](https://wpfusion.com/go/fluentcrm) module which adds the ability to trigger automations based on changes to contact custom fields.
 
-![field-updated-trigger-screenshot](https://github.com/verygoodplugins/fluent-crm-field-updated-trigger/assets/13076544/7217619b-f248-4310-9ffd-bf6e87a9edc9)
+<p align="center">
+<img src="https://github.com/verygoodplugins/fluent-crm-field-updated-trigger/assets/13076544/7217619b-f248-4310-9ffd-bf6e87a9edc9" width="75%">
+</p>
 
-![field-updated-trigger-config](https://github.com/verygoodplugins/fluent-crm-field-updated-trigger/assets/13076544/7dc1f60c-fe3c-48b6-8991-e2d542a0459a)
+<p align="center">
+  
+<img src="https://github.com/verygoodplugins/fluent-crm-field-updated-trigger/assets/13076544/7dc1f60c-fe3c-48b6-8991-e2d542a0459a" width="75%">
+</p>
 
-Features:
+**Features:**
 
 - Can select any custom CRM field to use as the trigger
 - Can run any time the field is changed, or only when it's changed to a specific value
@@ -14,6 +19,7 @@ Features:
 ## Wish list
 
 - [ ] Value comparisons (begins with, contains, greater than, date ranges, etc)
+- [ ] "Value changed from" condition
 
 --------------------
 

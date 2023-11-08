@@ -5,7 +5,7 @@ use FluentCrm\App\Services\Funnel\FunnelHelper;
 use FluentCrm\App\Services\Funnel\FunnelProcessor;
 use FluentCrm\Framework\Support\Arr;
 
-class FieldUpdatedTrigger extends BaseTrigger {
+class Field_Updated_Trigger extends BaseTrigger {
 
 	/**
 	 * Get things started.
@@ -29,7 +29,6 @@ class FieldUpdatedTrigger extends BaseTrigger {
 		return array(
 			'category'    => __( 'CRM', 'fluentcampaign-pro' ),
 			'label'       => __( 'A field is updated', 'fluentcampaign-pro' ),
-			'icon'        => '',
 			'description' => __( 'This funnel will start when a custom field is updated on a contact.', 'fluentcampaign-pro' ),
 		);
 	}
@@ -67,13 +66,13 @@ class FieldUpdatedTrigger extends BaseTrigger {
 			'title'     => __( 'Field Updated', 'fluentcampaign-pro' ),
 			'sub_title' => __( 'This Funnel will start when the selected custom field is updated for a contact.', 'fluentcampaign-pro' ),
 			'fields'    => array(
-				'field_name'      => array(
+				'field_name' => array(
 					'type'        => 'select',
 					'options'     => $options,
 					'label'       => __( 'Field', 'fluentcampaign-pro' ),
 					'placeholder' => __( 'Select a field', 'fluentcampaign-pro' ),
 				),
-			)
+			),
 		);
 	}
 
@@ -101,7 +100,7 @@ class FieldUpdatedTrigger extends BaseTrigger {
 	public function getConditionFields( $funnel ) {
 
 		return array(
-			'update_type' => array(
+			'update_type'  => array(
 				'type'    => 'radio',
 				'label'   => __( 'If the field changes to?', 'fluentcampaign-pro' ),
 				'options' => array(
@@ -111,13 +110,13 @@ class FieldUpdatedTrigger extends BaseTrigger {
 					),
 					array(
 						'id'    => 'specific',
-						'title' => __( 'A Specific Value', 'fluentcampaign-pro' )
+						'title' => __( 'A Specific Value', 'fluentcampaign-pro' ),
 					),
 				),
 			),
 			'field_value'  => array(
 				'type'       => 'input-text',
-				'label'      => __( 'Field Value', 'fluentcampaign-pro'),
+				'label'      => __( 'Field Value', 'fluentcampaign-pro' ),
 				'help'       => __( 'Enter the field value that must match to trigger the automation.', 'fluentcampaign-pro' ),
 				'dependency' => array(
 					'depends_on' => 'update_type',
@@ -125,12 +124,12 @@ class FieldUpdatedTrigger extends BaseTrigger {
 					'value'      => 'specific',
 				),
 			),
-			'run_multiple' => [
+			'run_multiple' => array(
 				'type'        => 'yes_no_check',
 				'label'       => '',
 				'check_label' => __( 'Restart the Automation Multiple times for a contact for this event. (Only enable if you want to restart automation for the same contact)', 'fluentcampaign-pro' ),
 				'inline_help' => __( 'If you enable, then it will restart the automation for a contact even if the contact is already in the automation. Otherwise, It will just skip if already exist.', 'fluentcampaign-pro' ),
-			]
+			),
 		);
 	}
 
@@ -163,7 +162,6 @@ class FieldUpdatedTrigger extends BaseTrigger {
 			),
 			$subscriber
 		);
-
 	}
 
 	/**

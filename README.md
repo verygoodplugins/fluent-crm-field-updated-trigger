@@ -25,6 +25,10 @@ This is a [FluentCRM](https://wpfusion.com/go/fluentcrm) module which adds the a
 
 ## Changelog
 
+### 1.0.1 on November 9th, 2023
+
+* Fixed "Field Name" option not saving
+
 ### 1.0.0 on November 8th, 2023
 
 - Initial release

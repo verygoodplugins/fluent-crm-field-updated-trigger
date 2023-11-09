@@ -39,7 +39,12 @@ class Field_Updated_Trigger extends BaseTrigger {
 	 * @since 1.0.0
 	 */
 	public function getFunnelSettingsDefaults() {
-		return array();
+		return array(
+			'field_name'  => '',
+			'update_type' => 'any',
+			'field_value' => '',
+			'run_muliple' => 'no',
+		);
 	}
 
 	/**

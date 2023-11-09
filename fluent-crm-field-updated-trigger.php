@@ -4,7 +4,7 @@
  * Plugin Name: FluentCRM - Field Updated Trigger
  * Description: Adds a FluentCRM trigger for when a custom field is updated.
  * Plugin URI: https://github.com/verygoodplugins/fluent-crm-field-updated-trigger/
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: Very Good Plugins
  * Author URI: https://verygoodplugins.com/
 */

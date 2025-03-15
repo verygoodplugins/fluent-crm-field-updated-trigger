@@ -13,7 +13,7 @@ This is a [FluentCRM](https://wpfusion.com/go/fluentcrm) module which adds the a
 
 **Features:**
 
-- Can select any custom CRM field to use as the trigger
+- Can select any standard or custom CRM field to use as the trigger
 - Can run any time the field is changed, or only when it's changed to a specific value
 
 ## Wish list
@@ -24,6 +24,10 @@ This is a [FluentCRM](https://wpfusion.com/go/fluentcrm) module which adds the a
 --------------------
 
 ## Changelog
+
+### 1.1.0 on March 15th, 2025
+
+* Added Contact Updated Trigger for standard contact fields (thanks Dan!)
 
 ### 1.0.1 on November 9th, 2023
 

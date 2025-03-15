@@ -1,4 +1,10 @@
 <?php
+/**
+ * Contact Updated Trigger for FluentCRM
+ *
+ * @package FluentCRM
+ * @since   1.1.0
+ */
 
 use FluentCrm\App\Services\Funnel\BaseTrigger;
 use FluentCrm\App\Services\Funnel\FunnelHelper;
@@ -6,94 +12,129 @@ use FluentCrm\App\Services\Funnel\FunnelProcessor;
 use FluentCrm\Framework\Support\Arr;
 
 /**
- * Class Field_Updated_Trigger
+ * Class Contact_Updated_Trigger
  *
- * Triggers automations when a custom field is updated on a contact.
+ * Triggers automations when a standard field is updated on a contact.
  *
  * @since 1.1.0
  */
-class Field_Updated_Trigger extends BaseTrigger {
+class Contact_Updated_Trigger extends BaseTrigger {
 
 	/**
 	 * Get things started.
 	 *
-	 * @since 1.0.0
+	 * @since 1.1.0
 	 */
 	public function __construct() {
-
-		$this->{'triggerName'}  = 'fluentcrm_contact_custom_data_updated';
+		$this->{'triggerName'}  = 'fluentcrm_contact_updated';
 		$this->{'priority'}     = 15;
 		$this->{'actionArgNum'} = 3;
 		parent::__construct();
 	}
 
+
+
 	/**
 	 * Defines the trigger.
 	 *
-	 * @since 1.0.0
+	 * @since 1.1.0
+	 *
+	 * @return array The trigger definition.
 	 */
 	public function getTrigger() {
 		return array(
 			'category'    => __( 'CRM', 'fluentcampaign-pro' ),
-			'label'       => __( 'A custom field is updated', 'fluentcampaign-pro' ),
-			'description' => __( 'This funnel will start when a custom field is updated on a contact.', 'fluentcampaign-pro' ),
+			'label'       => __( 'A standard field is updated', 'fluentcampaign-pro' ),
+			'description' => __( 'This funnel will start when a standard field is updated on a contact.', 'fluentcampaign-pro' ),
 		);
 	}
+
 
 	/**
 	 * Get the funnel setting defaults.
 	 *
-	 * @since 1.0.0
+	 * @since 1.1.0
+	 *
+	 * @return array The funnel setting defaults.
 	 */
 	public function getFunnelSettingsDefaults() {
 		return array(
-			'field_name'  => '',
+			'field_name'  => 'any',
 			'update_type' => 'any',
 			'field_value' => '',
-			'run_muliple' => 'no',
+			'run_multiple' => 'no',
 		);
 	}
 
 	/**
 	 * Adds the settings fields.
 	 *
-	 * @since 1.0.0
+	 * @since 1.1.0
 	 *
 	 * @param FluentCrm\App\Models\Funnel $funnel The funnel.
+	 * @return array The settings fields.
 	 */
 	public function getSettingsFields( $funnel ) {
+		$standard_fields = array(
+			'hash',
+			'prefix',
+			'first_name',
+			'last_name',
+			'user_id',
+			'company_id',
+			'email',
+			'status', // pending / subscribed / bounced / unsubscribed; Default: subscriber.
+			'contact_type', // lead / customer.
+			'address_line_1',
+			'address_line_2',
+			'postal_code',
+			'city',
+			'state',
+			'country',
+			'phone',
+			'timezone',
+			'date_of_birth',
+			'source',
+			'life_time_value',
+			'last_activity',
+			'total_points',
+			'latitude',
+			'longitude',
+			'ip',
+			'created_at',
+			'updated_at',
+			'avatar',
+		);
 
 		$options = array();
-
-		foreach ( fluentcrm_get_custom_contact_fields() as $field ) {
-
+		foreach ( $standard_fields as $field ) {
 			$options[] = array(
-				'id'    => $field['slug'],
-				'title' => $field['label'],
+				'id'    => $field,
+				'title' => ucfirst( str_replace( '_', ' ', $field ) ),
 			);
-
 		}
 
 		return array(
 			'title'     => __( 'Field Updated', 'fluentcampaign-pro' ),
-			'sub_title' => __( 'This Funnel will start when the selected custom field is updated for a contact.', 'fluentcampaign-pro' ),
+			'sub_title' => __( 'This Funnel will start when the selected standard field is updated for a contact.', 'fluentcampaign-pro' ),
 			'fields'    => array(
 				'field_name' => array(
-					'type'        => 'select',
-					'options'     => $options,
-					'label'       => __( 'Field', 'fluentcampaign-pro' ),
-					'placeholder' => __( 'Select a field', 'fluentcampaign-pro' ),
+					'type'    => 'select',
+					'options' => $options,
+					'label'   => __( 'Field', 'fluentcampaign-pro' ),
 				),
 			),
 		);
 	}
 
+
 	/**
 	 * Get the defaults for the funnel.
 	 *
-	 * @since 1.0.0
+	 * @since 1.1.0
 	 *
 	 * @param FluentCrm\App\Models\Funnel $funnel The funnel.
+	 * @return array The funnel condition defaults.
 	 */
 	public function getFunnelConditionDefaults( $funnel ) {
 		return array(
@@ -105,9 +146,10 @@ class Field_Updated_Trigger extends BaseTrigger {
 	/**
 	 * Get the conditional fields for the funnel.
 	 *
-	 * @since 1.0.0
+	 * @since 1.1.0
 	 *
 	 * @param FluentCrm\App\Models\Funnel $funnel The funnel.
+	 * @return array The condition fields.
 	 */
 	public function getConditionFields( $funnel ) {
 
@@ -148,18 +190,16 @@ class Field_Updated_Trigger extends BaseTrigger {
 	/**
 	 * Handle the action.
 	 *
-	 * @since 1.0.0
+	 * @since 1.1.0
 	 *
 	 * @param FluentCrm\App\Models\Funnel $funnel        The funnel.
 	 * @param array                       $original_args The original arguments.
 	 */
 	public function handle( $funnel, $original_args ) {
-
-		$subscriber   = $original_args[1];
-		$updated_data = $original_args[2];
+		$subscriber   = $original_args[0];
+		$updated_data = $original_args[1];
 
 		$will_process = $this->isProcessable( $funnel, $subscriber, $updated_data );
-
 		$will_process = apply_filters( 'fluentcrm_funnel_will_process_' . $this->{'triggerName'}, $will_process, $funnel, $subscriber, $original_args );
 
 		if ( ! $will_process ) {
@@ -169,42 +209,39 @@ class Field_Updated_Trigger extends BaseTrigger {
 		( new FunnelProcessor() )->startFunnelSequence(
 			$funnel,
 			array(),
-			array(
-				'source_trigger_name' => $this->{'triggerName'},
-			),
+			array( 'source_trigger_name' => $this->{'triggerName'} ),
 			$subscriber
 		);
 	}
 
 	/**
-	 * Is the action processable?
+	 * Determines if the funnel should be processed.
 	 *
-	 * @since 1.0.0
+	 * @since 1.1.0
 	 *
-	 * @param FluentCrm\App\Models\Funnel     $funnel       The funnel.
-	 * @param FluentCrm\App\Models\Subscriber $subscriber   The subscriber.
-	 * @param array                           $updated_data The updated custom fields.
-	 * @return bool Whether or not the action is processable.
+	 * @param FluentCrm\App\Models\Funnel $funnel       The funnel.
+	 * @param object                      $subscriber   The subscriber.
+	 * @param array                       $updated_data The updated data.
+	 * @return bool Whether the funnel should be processed.
 	 */
 	private function isProcessable( $funnel, $subscriber, $updated_data ) {
-
 		$field = Arr::get( $funnel->settings, 'field_name' );
 
-		// Check if the correct field was updated.
+		if ( 'any' === $field ) {
+			return true; // Always process if 'any' is the field name.
+		}
+
 		if ( ! array_key_exists( $field, $updated_data ) ) {
 			return false;
 		}
 
 		$update_type = Arr::get( $funnel->conditions, 'update_type' );
 
-		// Check if we're looking for a specific value match.
 		if ( 'specific' === $update_type && Arr::get( $funnel->conditions, 'field_value' ) !== $updated_data[ $field ] ) {
 			return false;
 		}
 
-		// check run_only_once.
 		if ( $subscriber && FunnelHelper::ifAlreadyInFunnel( $funnel->id, $subscriber->id ) ) {
-
 			if ( 'yes' === Arr::get( $funnel->conditions, 'run_multiple' ) ) {
 				FunnelHelper::removeSubscribersFromFunnel( $funnel->id, array( $subscriber->id ) );
 			} else {
@@ -216,4 +253,4 @@ class Field_Updated_Trigger extends BaseTrigger {
 	}
 }
 
-new Field_Updated_Trigger();
+new Contact_Updated_Trigger();

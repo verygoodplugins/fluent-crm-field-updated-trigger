@@ -136,6 +136,21 @@ class Field_Updated_Trigger extends BaseTrigger {
 					'value'      => 'specific',
 				),
 			),
+			'field_empty'  => array(
+				'type'       => 'radio',
+				'label'      => __( 'Can the field be empty ?', 'fluentcampaign-pro' ),
+				'options' => array(
+					array(
+						'id'    => 'yes',
+						'title' => __( 'Yes', 'fluentcampaign-pro' ),
+					),
+					array(
+						'id'    => 'no',
+						'title' => __( 'No', 'fluentcampaign-pro' ),
+					),
+				),
+				'help'       => __( 'If the field can be empty, the automation will run. Otherwise it will be skipped.', 'fluentcampaign-pro' ),
+			),
 			'run_multiple' => array(
 				'type'        => 'yes_no_check',
 				'label'       => '',
@@ -201,6 +216,13 @@ class Field_Updated_Trigger extends BaseTrigger {
 		if ( 'specific' === $update_type && Arr::get( $funnel->conditions, 'field_value' ) !== $updated_data[ $field ] ) {
 			return false;
 		}
+
+		$field_empty = Arr::get( $funnel->conditions, 'field_empty');
+		
+		// Check if the updated data field is empty
+		if ( 'no' === $field_empty && empty( $updated_data[ $field ] )) {
+			return false;
+		} 
 
 		// check run_only_once.
 		if ( $subscriber && FunnelHelper::ifAlreadyInFunnel( $funnel->id, $subscriber->id ) ) {

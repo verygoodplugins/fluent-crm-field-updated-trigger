@@ -213,8 +213,15 @@ class Field_Updated_Trigger extends BaseTrigger {
 		$update_type = Arr::get( $funnel->conditions, 'update_type' );
 
 		// Check if we're looking for a specific value match.
-		if ( 'specific' === $update_type && Arr::get( $funnel->conditions, 'field_value' ) !== $updated_data[ $field ] ) {
-			return false;
+		if ( 'specific' === $update_type ) {
+			// Cast both values to strings to ensure consistent comparison
+			// This handles cases where the field value might be an integer
+			$expected_value = (string) Arr::get( $funnel->conditions, 'field_value' );
+			$actual_value   = (string) $updated_data[ $field ];
+			
+			if ( $expected_value !== $actual_value ) {
+				return false;
+			}
 		}
 
 		$field_empty = Arr::get( $funnel->conditions, 'field_empty');

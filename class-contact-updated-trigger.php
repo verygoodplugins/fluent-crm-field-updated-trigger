@@ -21,6 +21,30 @@ use FluentCrm\Framework\Support\Arr;
 class Contact_Updated_Trigger extends BaseTrigger {
 
 	/**
+	 * Whether this trigger is currently handling an event.
+	 *
+	 * Prevents re-entrant firing when the automation itself
+	 * modifies a contact and triggers another update event.
+	 *
+	 * @since x.x.x
+	 *
+	 * @var bool
+	 */
+	private static $handling = false;
+
+	/**
+	 * Subscriber+funnel combos already processed in this request.
+	 *
+	 * Prevents the same funnel from starting twice for the same
+	 * subscriber within a single request.
+	 *
+	 * @since x.x.x
+	 *
+	 * @var array<string, true>
+	 */
+	private static $processed = array();
+
+	/**
 	 * Get things started.
 	 *
 	 * @since 1.1.0
@@ -206,13 +230,25 @@ class Contact_Updated_Trigger extends BaseTrigger {
 	 * Handle the action.
 	 *
 	 * @since 1.1.0
+	 * @since x.x.x Added re-entry and per-request duplicate guards.
 	 *
 	 * @param FluentCrm\App\Models\Funnel $funnel        The funnel.
 	 * @param array                       $original_args The original arguments.
 	 */
 	public function handle( $funnel, $original_args ) {
+
+		if ( self::$handling ) {
+			return;
+		}
+
 		$subscriber   = $original_args[0];
 		$updated_data = $original_args[1];
+
+		$lock_key = $subscriber->id . '_' . $funnel->id;
+
+		if ( isset( self::$processed[ $lock_key ] ) ) {
+			return;
+		}
 
 		$will_process = $this->isProcessable( $funnel, $subscriber, $updated_data );
 		$will_process = apply_filters( 'fluentcrm_funnel_will_process_' . $this->{'triggerName'}, $will_process, $funnel, $subscriber, $original_args );
@@ -221,18 +257,27 @@ class Contact_Updated_Trigger extends BaseTrigger {
 			return;
 		}
 
-		( new FunnelProcessor() )->startFunnelSequence(
-			$funnel,
-			array(),
-			array( 'source_trigger_name' => $this->{'triggerName'} ),
-			$subscriber
-		);
+		self::$processed[ $lock_key ] = true;
+		self::$handling               = true;
+
+		try {
+			( new FunnelProcessor() )->startFunnelSequence(
+				$funnel,
+				array(),
+				array( 'source_trigger_name' => $this->{'triggerName'} ),
+				$subscriber
+			);
+		} finally {
+			self::$handling = false;
+		}
 	}
 
 	/**
 	 * Determines if the funnel should be processed.
 	 *
 	 * @since 1.1.0
+	 * @since x.x.x Fixed 'any' field bypassing run_multiple and funnel
+	 *              membership checks.
 	 *
 	 * @param FluentCrm\App\Models\Funnel $funnel       The funnel.
 	 * @param object                      $subscriber   The subscriber.
@@ -242,26 +287,24 @@ class Contact_Updated_Trigger extends BaseTrigger {
 	private function isProcessable( $funnel, $subscriber, $updated_data ) {
 		$field = Arr::get( $funnel->settings, 'field_name' );
 
-		if ( 'any' === $field ) {
-			return true; // Always process if 'any' is the field name.
+		if ( 'any' !== $field ) {
+
+			if ( ! array_key_exists( $field, $updated_data ) ) {
+				return false;
+			}
+
+			$update_type = Arr::get( $funnel->conditions, 'update_type' );
+
+			if ( 'specific' === $update_type && (string) Arr::get( $funnel->conditions, 'field_value' ) !== (string) $updated_data[ $field ] ) {
+				return false;
+			}
+
+			$field_empty = Arr::get( $funnel->conditions, 'field_empty' );
+
+			if ( 'no' === $field_empty && empty( $updated_data[ $field ] ) ) {
+				return false;
+			}
 		}
-
-		if ( ! array_key_exists( $field, $updated_data ) ) {
-			return false;
-		}
-
-		$update_type = Arr::get( $funnel->conditions, 'update_type' );
-
-		if ( 'specific' === $update_type && Arr::get( $funnel->conditions, 'field_value' ) !== $updated_data[ $field ] ) {
-			return false;
-		}
-
-		$field_empty = Arr::get( $funnel->conditions, 'field_empty');
-		
-		// Check if the updated data field is empty
-		if ( 'no' === $field_empty && empty( $updated_data[ $field ] )) {
-			return false;
-		} 
 
 		if ( $subscriber && FunnelHelper::ifAlreadyInFunnel( $funnel->id, $subscriber->id ) ) {
 			if ( 'yes' === Arr::get( $funnel->conditions, 'run_multiple' ) ) {

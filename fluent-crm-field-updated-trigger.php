@@ -38,8 +38,17 @@ if ( ! function_exists( 'add_action' ) ) {
  * Bootstrap the plugin.
  *
  * @since 1.0.0
+ * @since x.x.x Added boot guard to prevent duplicate trigger registration.
  */
 function fluentcrm_field_updated_trigger_boot() {
+	static $booted = false;
+
+	if ( $booted ) {
+		return;
+	}
+
+	$booted = true;
+
 	include_once __DIR__ . '/class-field-updated-trigger.php';
 	include_once __DIR__ . '/class-contact-updated-trigger.php';
 }

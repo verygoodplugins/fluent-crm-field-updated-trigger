@@ -15,6 +15,24 @@ use FluentCrm\Framework\Support\Arr;
 class Field_Updated_Trigger extends BaseTrigger {
 
 	/**
+	 * Whether this trigger is currently handling an event.
+	 *
+	 * @since x.x.x
+	 *
+	 * @var bool
+	 */
+	private static $handling = false;
+
+	/**
+	 * Subscriber+funnel combos already processed in this request.
+	 *
+	 * @since x.x.x
+	 *
+	 * @var array<string, true>
+	 */
+	private static $processed = array();
+
+	/**
 	 * Get things started.
 	 *
 	 * @since 1.0.0
@@ -164,14 +182,25 @@ class Field_Updated_Trigger extends BaseTrigger {
 	 * Handle the action.
 	 *
 	 * @since 1.0.0
+	 * @since x.x.x Added re-entry and per-request duplicate guards.
 	 *
 	 * @param FluentCrm\App\Models\Funnel $funnel        The funnel.
 	 * @param array                       $original_args The original arguments.
 	 */
 	public function handle( $funnel, $original_args ) {
 
+		if ( self::$handling ) {
+			return;
+		}
+
 		$subscriber   = $original_args[1];
 		$updated_data = $original_args[2];
+
+		$lock_key = $subscriber->id . '_' . $funnel->id;
+
+		if ( isset( self::$processed[ $lock_key ] ) ) {
+			return;
+		}
 
 		$will_process = $this->isProcessable( $funnel, $subscriber, $updated_data );
 
@@ -181,14 +210,21 @@ class Field_Updated_Trigger extends BaseTrigger {
 			return;
 		}
 
-		( new FunnelProcessor() )->startFunnelSequence(
-			$funnel,
-			array(),
-			array(
-				'source_trigger_name' => $this->{'triggerName'},
-			),
-			$subscriber
-		);
+		self::$processed[ $lock_key ] = true;
+		self::$handling               = true;
+
+		try {
+			( new FunnelProcessor() )->startFunnelSequence(
+				$funnel,
+				array(),
+				array(
+					'source_trigger_name' => $this->{'triggerName'},
+				),
+				$subscriber
+			);
+		} finally {
+			self::$handling = false;
+		}
 	}
 
 	/**
